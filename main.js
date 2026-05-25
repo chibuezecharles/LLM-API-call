@@ -1,4 +1,7 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+import fetch from "node-fetch";
+
+dotenv.config();
 
 const API_KEY = process.env.OPENROUTER_API_KEY;
 const MODEL_NAME = process.env.MODEL_NAME;
@@ -15,8 +18,7 @@ if (!MODEL_NAME) {
   process.exit(1);
 }
 
-// generateText function 
-const generateText = async(prompt) => {
+const generateText = async (prompt) => {
   try {
     const response = await fetch(
       `${BASE_API_URL}${MODEL_NAME}:generateContent?key=${API_KEY}`,
@@ -39,13 +41,12 @@ const generateText = async(prompt) => {
       }
     );
 
-    if (!response.ok) {
-      throw new Error(
-        `API Error: ${response.status} ${response.statusText}`
-      );
-    }
-
     const data = await response.json();
+
+    if (!response.ok) {
+      console.error("API Error:", data);
+      return;
+    }
 
     return (
       data?.candidates?.[0]?.content?.parts?.[0]?.text ||
@@ -53,12 +54,9 @@ const generateText = async(prompt) => {
     );
   } catch (error) {
     console.error("Error calling Gemini API:", error.message);
-    return null;
   }
-}
+};
 
-//  CLI Usage
- 
 const main = async () => {
   const prompt = process.argv.slice(2).join(" ");
 
@@ -69,10 +67,8 @@ const main = async () => {
 
   const result = await generateText(prompt);
 
-  if (result) {
-    console.log("\nAI Response:\n");
-    console.log(result);
-  }
-}
+  console.log("\nAI Response:\n");
+  console.log(result);
+};
 
 main();
