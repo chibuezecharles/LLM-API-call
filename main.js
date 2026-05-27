@@ -6,7 +6,7 @@ dotenv.config();
 const API_KEY = process.env.OPENROUTER_API_KEY;
 const MODEL_NAME = process.env.MODEL_NAME;
 
-const BASE_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/";
+const BASE_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 if (!API_KEY) {
   console.error("Missing OPENROUTER_API_KEY in .env");
@@ -18,28 +18,25 @@ if (!MODEL_NAME) {
   process.exit(1);
 }
 
+
 const generateText = async (prompt) => {
   try {
-    const response = await fetch(
-      `${BASE_API_URL}${MODEL_NAME}:generateContent?key=${API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-        }),
-      }
-    );
+    const response = await fetch(BASE_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: MODEL_NAME,
+        messages: [
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+      }),
+    });
 
     const data = await response.json();
 
@@ -49,11 +46,11 @@ const generateText = async (prompt) => {
     }
 
     return (
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+      data?.choices?.[0]?.message?.content ||
       "No response generated."
     );
   } catch (error) {
-    console.error("Error calling Gemini API:", error.message);
+    console.error("Error calling OpenRouter API:", error.message);
   }
 };
 
